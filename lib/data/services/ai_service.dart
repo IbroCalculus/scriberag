@@ -204,96 +204,98 @@ class AIService {
       throw Exception("The selected AI Provider ($_activeProvider) is not configured.");
     }
 
-    if (entries.isEmpty) {
-      yield "You don't have any journal entries yet! Record a voice entry first so I can retrieve context.";
-      return;
-    }
-
     List<JournalEntry> matchingEntriesList = [];
 
-    if (hasEmbeddingCapability) {
-      try {
-        // 1. Get embedding for the user query (Gemini)
-        final queryEmbedding = await getEmbedding(query);
+    if (entries.isNotEmpty) {
+      if (hasEmbeddingCapability) {
+        try {
+          // 1. Get embedding for the user query (Gemini)
+          final queryEmbedding = await getEmbedding(query);
 
-        // 2. Rank entries by cosine similarity
-        final scoredEntries = entries.map((entry) {
-          double score = 0.0;
-          if (entry.embedding != null) {
-            score = calculateCosineSimilarity(queryEmbedding, entry.embedding!);
-          }
-          return _ScoredEntry(entry, score);
-        }).toList();
-
-        // 3. Filter and sort
-        final matchingEntries = scoredEntries
-            .where((element) => element.score >= minSimilarity)
-            .toList();
-
-        matchingEntries.sort((a, b) => b.score.compareTo(a.score));
-        matchingEntriesList = matchingEntries.take(topK).map((e) => e.entry).toList();
-      } catch (e) {
-        print("Embedding generation failed, falling back to text-based search: $e");
-      }
-    }
-
-    // Keyword search fallback if embeddings are not available or embedding request failed
-    if (matchingEntriesList.isEmpty) {
-      final queryLower = query.toLowerCase();
-      final queryWords = queryLower.split(RegExp(r'\s+')).where((w) => w.length > 2).toList();
-      final scoredEntries = <_ScoredEntry>[];
-
-      for (var entry in entries) {
-        final textLower = entry.transcription.toLowerCase();
-        double score = 0.0;
-
-        if (queryWords.isEmpty) {
-          if (textLower.contains(queryLower)) {
-            score = 1.0;
-          }
-        } else {
-          int matchCount = 0;
-          for (var word in queryWords) {
-            if (textLower.contains(word)) {
-              matchCount++;
+          // 2. Rank entries by cosine similarity
+          final scoredEntries = entries.map((entry) {
+            double score = 0.0;
+            if (entry.embedding != null) {
+              score = calculateCosineSimilarity(queryEmbedding, entry.embedding!);
             }
-          }
-          score = matchCount / queryWords.length;
-        }
+            return _ScoredEntry(entry, score);
+          }).toList();
 
-        if (score > 0.0) {
-          scoredEntries.add(_ScoredEntry(entry, score));
+          // 3. Filter and sort
+          final matchingEntries = scoredEntries
+              .where((element) => element.score >= minSimilarity)
+              .toList();
+
+          matchingEntries.sort((a, b) => b.score.compareTo(a.score));
+          matchingEntriesList = matchingEntries.take(topK).map((e) => e.entry).toList();
+        } catch (e) {
+          print("Embedding generation failed, falling back to text-based search: $e");
         }
       }
 
-      scoredEntries.sort((a, b) => b.score.compareTo(a.score));
-      matchingEntriesList = scoredEntries.take(topK).map((e) => e.entry).toList();
-    }
+      // Keyword search fallback if embeddings are not available or embedding request failed
+      if (matchingEntriesList.isEmpty) {
+        final queryLower = query.toLowerCase();
+        final queryWords = queryLower.split(RegExp(r'\s+')).where((w) => w.length > 2).toList();
+        final scoredEntries = <_ScoredEntry>[];
 
-    if (matchingEntriesList.isEmpty) {
-      yield "I searched your journal entries but couldn't find any relevant memories matching your query. Try asking about something else, or recording more entries!";
-      return;
+        for (var entry in entries) {
+          final textLower = entry.transcription.toLowerCase();
+          double score = 0.0;
+
+          if (queryWords.isEmpty) {
+            if (textLower.contains(queryLower)) {
+              score = 1.0;
+            }
+          } else {
+            int matchCount = 0;
+            for (var word in queryWords) {
+              if (textLower.contains(word)) {
+                matchCount++;
+              }
+            }
+            score = matchCount / queryWords.length;
+          }
+
+          if (score > 0.0) {
+            scoredEntries.add(_ScoredEntry(entry, score));
+          }
+        }
+
+        scoredEntries.sort((a, b) => b.score.compareTo(a.score));
+        matchingEntriesList = scoredEntries.take(topK).map((e) => e.entry).toList();
+      }
     }
 
     // 4. Construct context and prompt
     final contextBuffer = StringBuffer();
-    contextBuffer.writeln(
-      "Here are the most relevant journal entries matching the user's query:\n",
-    );
-
-    for (var i = 0; i < matchingEntriesList.length; i++) {
-      final entry = matchingEntriesList[i];
-      final formattedDate = entry.timestamp.toLocal().toString().substring(0, 16);
+    if (entries.isEmpty) {
       contextBuffer.writeln(
-        "Entry #${i + 1} - Date: $formattedDate",
+        "No journal entries exist yet. The user has not recorded any voice journals.\n",
       );
-      contextBuffer.writeln("Transcription: \"${entry.transcription}\"");
-      contextBuffer.writeln("-" * 40);
+    } else if (matchingEntriesList.isEmpty) {
+      contextBuffer.writeln(
+        "No relevant journal entries were found in the user's journal matching the user query.\n",
+      );
+    } else {
+      contextBuffer.writeln(
+        "Here are the most relevant journal entries matching the user's query:\n",
+      );
+
+      for (var i = 0; i < matchingEntriesList.length; i++) {
+        final entry = matchingEntriesList[i];
+        final formattedDate = entry.timestamp.toLocal().toString().substring(0, 16);
+        contextBuffer.writeln(
+          "Entry #${i + 1} - Date: $formattedDate",
+        );
+        contextBuffer.writeln("Transcription: \"${entry.transcription}\"");
+        contextBuffer.writeln("-" * 40);
+      }
     }
 
     final prompt = """
 You are ScribeRAG, a deeply empathetic and intelligent voice journaling AI companion. 
-Your goal is to help the user reflect on their past journal entries and answer their questions using only the provided context.
+Your goal is to help the user reflect on their past journal entries and answer their questions.
 
 Context:
 ${contextBuffer.toString()}
@@ -302,10 +304,11 @@ User Query: "$query"
 
 Instructions:
 1. Synthesize a coherent, concise, and helpful response.
-2. Directly answer the user's question by referencing specific entries and their dates (e.g., "On June 20, you mentioned...").
-3. Adopt a supportive, reflective, and conversational tone, as you are a journal assistant.
-4. Speak in the first person ("I") and refer to the user in the second person ("you").
-5. If the provided entries do not contain the answer, politely tell the user that you couldn't find that memory in their current entries. Do NOT make up facts.
+2. If relevant entries are provided in the Context, directly answer the user's question by referencing specific entries and their dates (e.g., "On June 20, you mentioned...").
+3. If no journal entries exist yet or no relevant entries were found (as indicated in the context section above), politely inform the user that you couldn't find any relevant memories in their journal entries, but then respond to their query generally and conversationally to keep the discussion going.
+4. Adopt a supportive, reflective, and conversational tone, as you are a journal assistant.
+5. Speak in the first person ("I") and refer to the user in the second person ("you").
+6. Do NOT make up facts about their past if they are not in the context.
 """;
 
     // 5. Call Genkit generation stream
