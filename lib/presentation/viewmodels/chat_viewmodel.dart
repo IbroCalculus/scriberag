@@ -99,8 +99,28 @@ class ChatViewModel extends ChangeNotifier {
       print("RAG Error: $e");
       
       _messages.removeWhere((m) => m.id == "temp_ai_msg");
+      
+      String userFriendlyError = e.toString();
+      if (userFriendlyError.contains("SocketException") || userFriendlyError.contains("Failed host lookup")) {
+        if (_aiService.activeProvider == 'gemini') {
+          userFriendlyError = "Connection Error: Unable to reach Gemini API. "
+              "Please check the internet connection on your mobile device. "
+              "If your phone is connected to a local-only Wi-Fi network/hotspot to connect to LM Studio, "
+              "please make sure the network has internet access, or switch your Active Provider to 'LM Studio' in Settings.";
+        } else if (_aiService.activeProvider == 'lm_studio') {
+          userFriendlyError = "Connection Error: Unable to reach your local LM Studio server at '${_aiService.lmStudioUrl}'. "
+              "Please verify that the LM Studio server is running, the host IP address is correct, "
+              "and both your computer and phone are on the same Wi-Fi network.";
+        }
+      } else if (userFriendlyError.contains("Connection refused")) {
+        if (_aiService.activeProvider == 'lm_studio') {
+          userFriendlyError = "Connection Refused: Unable to connect to LM Studio at '${_aiService.lmStudioUrl}'. "
+              "Ensure the LM Studio local server is active and accepting connections on that port.";
+        }
+      }
+
       final errorMsg = await _chatRepository.addMessage(
-        "Sorry, I ran into an error while accessing your journal memories: ${e.toString()}",
+        "Sorry, I ran into an error: $userFriendlyError",
         MessageSender.ai,
       );
       _messages.add(errorMsg);

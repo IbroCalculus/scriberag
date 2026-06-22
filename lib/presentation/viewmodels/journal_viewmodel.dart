@@ -42,6 +42,8 @@ class JournalViewModel extends ChangeNotifier {
   // Strong reference to prevent the in-memory audio source from being garbage collected
   DecryptedAudioSource? _currentAudioSource;
   
+  String? _lastTranscriptionError;
+  
   // Subscriptions for player
   StreamSubscription? _positionSubscription;
   StreamSubscription? _durationSubscription;
@@ -64,6 +66,7 @@ class JournalViewModel extends ChangeNotifier {
   List<double> get liveAmplitudes => _liveAmplitudes;
   double get currentAmplitude => _currentAmplitude;
   int get recordingDurationSeconds => _recordingDurationSeconds;
+  String? get lastTranscriptionError => _lastTranscriptionError;
   
   String? get activeEntryId => _activeEntryId;
   bool get isPlaying => _isPlaying;
@@ -210,6 +213,7 @@ class JournalViewModel extends ChangeNotifier {
         _recordingState = RecordingState.saving;
         notifyListeners();
 
+        _lastTranscriptionError = null;
         // Get transcription: use live transcription if present, otherwise fallback to AI Service post-recording
         String finalTranscription = _liveTranscription.trim();
         if (finalTranscription.isEmpty) {
@@ -218,6 +222,12 @@ class JournalViewModel extends ChangeNotifier {
             finalTranscription = await _journalRepository.transcribeAudio(rawBytes);
           } catch (e) {
             print("Post-recording transcription failed: $e");
+            String errStr = e.toString();
+            if (errStr.contains("SocketException") || errStr.contains("Failed host lookup")) {
+              _lastTranscriptionError = "Transcription failed: Network connection error. Unable to reach Google Gemini API.";
+            } else {
+              _lastTranscriptionError = "Transcription failed: $errStr";
+            }
           }
         }
 

@@ -368,6 +368,18 @@ class _RecordingBottomSheetState extends State<RecordingBottomSheet> {
                     await journalVm.stopRecordingAndSave();
                     if (mounted) {
                       Navigator.pop(context);
+                      if (journalVm.lastTranscriptionError != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              journalVm.lastTranscriptionError!,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.amber[800],
+                            duration: const Duration(seconds: 5),
+                          ),
+                        );
+                      }
                     }
                   } catch (e) {
                     if (mounted) {
