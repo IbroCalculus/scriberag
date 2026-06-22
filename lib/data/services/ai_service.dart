@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genkit/genkit.dart';
@@ -260,6 +261,39 @@ Instructions:
     await for (final chunk in responseStream) {
       yield chunk.text;
     }
+  }
+
+  // Transcribe audio using Gemini 1.5 Flash (which is always configured for embeddings)
+  Future<String> transcribeAudio(List<int> audioBytes) async {
+    if (!hasEmbeddingCapability) {
+      throw Exception("Gemini API Key is not set, which is required for transcription.");
+    }
+    if (_ai == null) {
+      throw Exception("AI Service is not initialized.");
+    }
+
+    final base64String = base64.encode(audioBytes);
+    final dataUrl = 'data:audio/mp4;base64,$base64String';
+
+    final message = Message(
+      role: Role.user,
+      content: [
+        TextPart(text: 'Please transcribe the following audio file. Return ONLY the transcribed text, with no extra commentary, introductory text, or formatting. If the audio is silent or unintelligible, return an empty string.'),
+        MediaPart(
+          media: Media(
+            url: dataUrl,
+            contentType: 'audio/mp4',
+          ),
+        ),
+      ],
+    );
+
+    final response = await _ai!.generate(
+      model: googleAI.gemini('gemini-1.5-flash'),
+      messages: [message],
+    );
+
+    return response.text.trim();
   }
 }
 

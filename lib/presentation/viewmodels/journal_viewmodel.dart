@@ -166,16 +166,18 @@ class JournalViewModel extends ChangeNotifier {
             notifyListeners();
           });
 
-      // 4. Start speech-to-text live listening (fallback to on-device)
-      try {
-        await _speechService.startListening(
-          onResult: (text) {
-            _liveTranscription = text;
-            notifyListeners();
-          },
-        );
-      } catch (e) {
-        print("Speech recognition failed to start: $e");
+      // 4. Start speech-to-text live listening (avoid starting it on Android due to exclusive mic lock conflict)
+      if (!Platform.isAndroid) {
+        try {
+          await _speechService.startListening(
+            onResult: (text) {
+              _liveTranscription = text;
+              notifyListeners();
+            },
+          );
+        } catch (e) {
+          print("Speech recognition failed to start: $e");
+        }
       }
 
       notifyListeners();
@@ -208,10 +210,21 @@ class JournalViewModel extends ChangeNotifier {
         _recordingState = RecordingState.saving;
         notifyListeners();
 
-        // Use a descriptive placeholder if transcription is empty
-        final finalTranscription = _liveTranscription.trim().isEmpty
-            ? "Voice Entry (${DateTime.now().toLocal().toString().substring(0, 16)})"
-            : _liveTranscription;
+        // Get transcription: use live transcription if present, otherwise fallback to AI Service post-recording
+        String finalTranscription = _liveTranscription.trim();
+        if (finalTranscription.isEmpty) {
+          try {
+            final rawBytes = await File(_tempAudioPath).readAsBytes();
+            finalTranscription = await _journalRepository.transcribeAudio(rawBytes);
+          } catch (e) {
+            print("Post-recording transcription failed: $e");
+          }
+        }
+
+        // Use a descriptive placeholder if transcription is still empty
+        if (finalTranscription.trim().isEmpty) {
+          finalTranscription = "Voice Entry (${DateTime.now().toLocal().toString().substring(0, 16)})";
+        }
 
         // If amplitudes is too small or empty, populate with dummy values
         if (_liveAmplitudes.isEmpty) {

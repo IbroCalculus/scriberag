@@ -91,6 +91,11 @@ class JournalRepository {
     return await _encryptionService.decryptFileToBytes(encryptedAudioPath);
   }
 
+  // Transcribe audio using AI Service
+  Future<String> transcribeAudio(List<int> audioBytes) async {
+    return await _aiService.transcribeAudio(audioBytes);
+  }
+
   bool get hasEmbeddingCapability => _aiService.hasEmbeddingCapability;
 
   // Re-generate missing embeddings (e.g. when API key was missing or failed during save)
