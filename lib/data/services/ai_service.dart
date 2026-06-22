@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genkit/genkit.dart';
@@ -102,6 +103,21 @@ class AIService {
   }
 
   String get lmStudioModel => _lmStudioModel;
+
+  // Test connection to LM Studio instance
+  Future<bool> testLmStudioConnection(String url) async {
+    try {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 4);
+      final cleanUrl = url.trim();
+      final modelsEndpoint = cleanUrl.endsWith('/v1') ? '$cleanUrl/models' : '$cleanUrl/v1/models';
+      final request = await client.getUrl(Uri.parse(modelsEndpoint));
+      final response = await request.close();
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 
   // Capabilities
   bool get hasEmbeddingCapability => _geminiApiKey != null && _geminiApiKey!.isNotEmpty;

@@ -20,6 +20,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _selectedProvider = 'gemini';
   bool _obscureKeys = true;
+  bool _testingConnection = false;
+  bool? _connectionSuccessful;
 
   @override
   void initState() {
@@ -69,6 +71,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SnackBar(
           content: Text('AI Configurations saved successfully!'),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _testingConnection = true;
+      _connectionSuccessful = null;
+    });
+
+    final aiService = context.read<AIService>();
+    final success = await aiService.testLmStudioConnection(_lmStudioUrlController.text);
+
+    if (mounted) {
+      setState(() {
+        _testingConnection = false;
+        _connectionSuccessful = success;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? 'Successfully connected to LM Studio!'
+                : 'Failed to connect to LM Studio. Verify the URL and that LM Studio has "Local Server" started.',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -322,6 +353,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           labelText: 'Model Name / ID',
                           hintText: 'e.g., local-model',
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _testingConnection ? null : _testConnection,
+                              icon: _testingConnection
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : Icon(
+                                      _connectionSuccessful == true
+                                          ? Icons.check_circle_outline_rounded
+                                          : _connectionSuccessful == false
+                                              ? Icons.error_outline_rounded
+                                              : Icons.sync_rounded,
+                                      color: _connectionSuccessful == true
+                                          ? Colors.green
+                                          : _connectionSuccessful == false
+                                              ? Colors.red
+                                              : null,
+                                    ),
+                              label: Text(_testingConnection ? 'Testing...' : 'Test Connection'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     
