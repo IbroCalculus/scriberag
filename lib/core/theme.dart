@@ -8,9 +8,7 @@ class AppTheme {
       colorScheme: ColorScheme.dark(
         primary: const Color(0xFF9D4EDD), // Bright Neon Purple
         secondary: const Color(0xFF00F0FF), // Neon Cyan
-        background: const Color(0xFF0A0518), // Deep Space Background
         surface: const Color(0xFF160E2C), // Elevated Purple-toned Surface
-        onBackground: Colors.white,
         onSurface: const Color(0xFFE2DDF0),
       ),
       scaffoldBackgroundColor: const Color(0xFF0A0518),
@@ -56,9 +54,7 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: const Color(0xFF7B2CBF),
         secondary: const Color(0xFF00B4D8),
-        background: const Color(0xFFF7F5FC),
         surface: Colors.white,
-        onBackground: const Color(0xFF160E2C),
         onSurface: const Color(0xFF20153D),
       ),
       scaffoldBackgroundColor: const Color(0xFFF7F5FC),

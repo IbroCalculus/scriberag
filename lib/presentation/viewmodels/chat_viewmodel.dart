@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:scriberag/data/models/chat_message.dart';
 import 'package:scriberag/data/repositories/chat_repository.dart';
 import 'package:scriberag/data/repositories/journal_repository.dart';
-import 'package:scriberag/data/services/gemini_service.dart';
+import 'package:scriberag/data/services/ai_service.dart';
 
 class ChatViewModel extends ChangeNotifier {
   final ChatRepository _chatRepository;
   final JournalRepository _journalRepository;
-  final GeminiService _geminiService;
+  final AIService _aiService;
 
   List<ChatMessage> _messages = [];
   bool _isLoading = false;
@@ -17,7 +17,7 @@ class ChatViewModel extends ChangeNotifier {
   ChatViewModel(
     this._chatRepository,
     this._journalRepository,
-    this._geminiService,
+    this._aiService,
   ) {
     _loadMessages();
   }
@@ -25,7 +25,7 @@ class ChatViewModel extends ChangeNotifier {
   // Getters
   List<ChatMessage> get messages => _messages;
   bool get isLoading => _isLoading;
-  bool get isGeminiConfigured => _geminiService.hasApiKey;
+  bool get isAiConfigured => _aiService.hasChatCapability;
   String get currentAiStreamText => _currentAiStreamText;
 
   void _loadMessages() {
@@ -36,8 +36,8 @@ class ChatViewModel extends ChangeNotifier {
   // Trigger search and synthesis chat
   Future<void> sendQuery(String query) async {
     if (query.trim().isEmpty) return;
-    if (!isGeminiConfigured) {
-      throw Exception("Gemini API Key is not set. Please go to Settings to configure it.");
+    if (!isAiConfigured) {
+      throw Exception("The selected AI Provider is not configured. Please go to Settings to configure it.");
     }
 
     _isLoading = true;
@@ -63,7 +63,7 @@ class ChatViewModel extends ChangeNotifier {
       final entries = _journalRepository.getEntries();
       
       // 4. Run retrieval and synthesis stream
-      final responseStream = _geminiService.searchAndSynthesize(query, entries);
+      final responseStream = _aiService.searchAndSynthesize(query, entries);
       
       bool isFirstChunk = true;
       await for (final chunk in responseStream) {

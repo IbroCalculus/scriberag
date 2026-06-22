@@ -38,7 +38,7 @@ class _MainNavigationState extends State<MainNavigation> {
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(
-              color: theme.colorScheme.outline.withOpacity(0.08),
+              color: theme.colorScheme.outline.withValues(alpha: 0.08),
               width: 1,
             ),
           ),
@@ -48,7 +48,7 @@ class _MainNavigationState extends State<MainNavigation> {
           onTap: _onItemTapped,
           backgroundColor: theme.colorScheme.surface,
           selectedItemColor: theme.colorScheme.primary,
-          unselectedItemColor: theme.colorScheme.onSurface.withOpacity(0.5),
+          unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           showSelectedLabels: true,
           showUnselectedLabels: true,
           type: BottomNavigationBarType.fixed,

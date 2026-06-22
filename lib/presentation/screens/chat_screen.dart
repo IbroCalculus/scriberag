@@ -83,12 +83,12 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Warning if Gemini is not configured
-            if (!chatVm.isGeminiConfigured)
+            // Warning if AI is not configured
+            if (!chatVm.isAiConfigured)
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Card(
-                  color: theme.colorScheme.error.withOpacity(0.1),
+                  color: theme.colorScheme.error.withValues(alpha: 0.1),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -100,7 +100,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Gemini Key Required',
+                          'AI Provider Required',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.error,
@@ -108,10 +108,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'To query your journals semantically, you need to configure your Gemini API Key in the Settings tab.',
+                          'To query your journals semantically, please configure your active AI Provider and API Keys in the Settings tab.',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onBackground.withOpacity(0.8),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -146,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
 
             // Text Input Box
-            if (chatVm.isGeminiConfigured)
+            if (chatVm.isAiConfigured)
               Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Row(
@@ -193,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
               ),
               child: Icon(
                 Icons.psychology_rounded,
@@ -206,7 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
               'Query Your Memories',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -214,7 +214,7 @@ class _ChatScreenState extends State<ChatScreen> {
               'ScribeRAG uses local vector embeddings to search through your past transcripts and synthesize a personal response.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 height: 1.5,
               ),
             ),
@@ -272,13 +272,13 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           gradient: isUser
               ? LinearGradient(
-                  colors: [theme.colorScheme.primary, theme.colorScheme.primary.withOpacity(0.8)],
+                  colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
                 )
               : null,
           color: isUser ? null : theme.colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -302,7 +302,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Text(
                   _formatTime(message.timestamp),
                   style: TextStyle(
-                    color: isUser ? Colors.white70 : theme.colorScheme.onSurface.withOpacity(0.4),
+                    color: isUser ? Colors.white70 : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     fontSize: 10,
                   ),
                 ),

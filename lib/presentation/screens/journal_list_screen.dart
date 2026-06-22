@@ -64,7 +64,7 @@ class JournalListScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
               ),
               child: Icon(
                 Icons.mic_rounded,
@@ -77,7 +77,7 @@ class JournalListScreen extends StatelessWidget {
               'No Journals Yet',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -85,7 +85,7 @@ class JournalListScreen extends StatelessWidget {
               'Tap the microphone below to record your first encrypted voice journal entry.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 height: 1.5,
               ),
             ),
@@ -142,7 +142,7 @@ class JournalListScreen extends StatelessWidget {
                 Text(
                   formattedTime,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -156,7 +156,7 @@ class JournalListScreen extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     height: 1.4,
                   ),
                 ),
@@ -291,7 +291,7 @@ class _RecordingBottomSheetState extends State<RecordingBottomSheet> {
             height: 4,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(2),
-              color: theme.colorScheme.onSurface.withOpacity(0.2),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
             ),
           ),
           const SizedBox(height: 24),
@@ -310,9 +310,9 @@ class _RecordingBottomSheetState extends State<RecordingBottomSheet> {
             height: 120,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: theme.colorScheme.background,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+              border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
             ),
             child: TextField(
               controller: _transcriptionController,
@@ -325,7 +325,7 @@ class _RecordingBottomSheetState extends State<RecordingBottomSheet> {
                 contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground,
+                color: theme.colorScheme.onSurface,
                 height: 1.5,
               ),
             ),
@@ -389,7 +389,7 @@ class _RecordingBottomSheetState extends State<RecordingBottomSheet> {
           if (journalVm.isRecording)
             TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.onSurface.withOpacity(0.6),
+                foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
               onPressed: () async {
                 await journalVm.cancelRecording();

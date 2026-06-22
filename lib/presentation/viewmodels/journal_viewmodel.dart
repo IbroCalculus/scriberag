@@ -163,6 +163,18 @@ class JournalViewModel extends ChangeNotifier {
             notifyListeners();
           });
 
+      // 4. Start speech-to-text live listening (fallback to on-device)
+      try {
+        await _speechService.startListening(
+          onResult: (text) {
+            _liveTranscription = text;
+            notifyListeners();
+          },
+        );
+      } catch (e) {
+        print("Speech recognition failed to start: $e");
+      }
+
       notifyListeners();
     } catch (e) {
       _cleanupRecording();
@@ -183,22 +195,13 @@ class JournalViewModel extends ChangeNotifier {
     _amplitudeSubscription?.cancel();
     
     try {
+      // Stop speech recognition
+      await _speechService.stopListening();
+
       // Stop recorder to release microphone lock
       final path = await _audioRecorder.stop();
       
       if (path != null) {
-        // Transcribe raw audio file via Gemini multimodal input
-        if (_journalRepository.hasGeminiApiKey) {
-          try {
-            final text = await _journalRepository.transcribeAudio(path);
-            if (text.trim().isNotEmpty) {
-              _liveTranscription = text.trim();
-            }
-          } catch (e) {
-            print("Failed to transcribe audio via Gemini: $e");
-          }
-        }
-
         _recordingState = RecordingState.saving;
         notifyListeners();
 
@@ -239,6 +242,7 @@ class JournalViewModel extends ChangeNotifier {
     _amplitudeSubscription?.cancel();
     
     try {
+      await _speechService.cancelListening();
       await _audioRecorder.stop();
       
       final file = File(_tempAudioPath);

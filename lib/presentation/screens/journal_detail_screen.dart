@@ -107,7 +107,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
             Text(
               'Recorded at $formattedTime',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 24),
@@ -133,13 +133,13 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                         Text(
                           _formatDuration(currentPos),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                         Text(
                           _formatDuration(totalDur),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -217,7 +217,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.1)),
+                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.1)),
               ),
               child: Text(
                 widget.entry.transcription,
@@ -235,7 +235,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: theme.colorScheme.secondary.withOpacity(0.08),
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.08),
                 ),
                 child: Row(
                   children: [

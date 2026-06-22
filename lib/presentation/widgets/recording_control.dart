@@ -76,7 +76,7 @@ class _RecordingControlState extends State<RecordingControl> with SingleTickerPr
                       height: 90 * pulseFactor,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: theme.colorScheme.error.withOpacity(0.15),
+                        color: theme.colorScheme.error.withValues(alpha: 0.15),
                       ),
                     ),
                     Container(
@@ -84,7 +84,7 @@ class _RecordingControlState extends State<RecordingControl> with SingleTickerPr
                       height: 110 * pulseFactor,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: theme.colorScheme.error.withOpacity(0.06),
+                        color: theme.colorScheme.error.withValues(alpha: 0.06),
                       ),
                     ),
                   ],
@@ -105,7 +105,7 @@ class _RecordingControlState extends State<RecordingControl> with SingleTickerPr
                       boxShadow: [
                         BoxShadow(
                           color: (widget.isRecording ? theme.colorScheme.error : theme.colorScheme.primary)
-                              .withOpacity(0.4),
+                              .withValues(alpha: 0.4),
                           blurRadius: widget.isRecording ? 16 + (widget.currentAmplitude * 12) : 12,
                           spreadRadius: 2,
                         ),
@@ -125,7 +125,7 @@ class _RecordingControlState extends State<RecordingControl> with SingleTickerPr
               Text(
                 widget.statusText,
                 style: TextStyle(
-                  color: widget.isRecording ? theme.colorScheme.error : theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: widget.isRecording ? theme.colorScheme.error : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,

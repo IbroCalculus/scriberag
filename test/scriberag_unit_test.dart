@@ -1,31 +1,31 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scriberag/data/models/journal_entry.dart';
-import 'package:scriberag/data/services/gemini_service.dart';
+import 'package:scriberag/data/services/ai_service.dart';
 import 'package:encrypt/encrypt.dart' as enc;
 
 void main() {
   group('Vector Similarity Tests', () {
-    final geminiService = GeminiService();
+    final aiService = AIService();
 
     test('Cosine similarity of identical vectors should be 1.0', () {
       final v1 = [1.0, 0.0, -1.0, 0.5];
       final v2 = [1.0, 0.0, -1.0, 0.5];
-      final sim = geminiService.calculateCosineSimilarity(v1, v2);
+      final sim = aiService.calculateCosineSimilarity(v1, v2);
       expect(sim, closeTo(1.0, 0.0001));
     });
 
     test('Cosine similarity of orthogonal vectors should be 0.0', () {
       final v1 = [1.0, 0.0, 0.0];
       final v2 = [0.0, 1.0, 0.0];
-      final sim = geminiService.calculateCosineSimilarity(v1, v2);
+      final sim = aiService.calculateCosineSimilarity(v1, v2);
       expect(sim, closeTo(0.0, 0.0001));
     });
 
     test('Cosine similarity of opposite vectors should be -1.0', () {
       final v1 = [1.0, 2.0, 3.0];
       final v2 = [-1.0, -2.0, -3.0];
-      final sim = geminiService.calculateCosineSimilarity(v1, v2);
+      final sim = aiService.calculateCosineSimilarity(v1, v2);
       expect(sim, closeTo(-1.0, 0.0001));
     });
   });

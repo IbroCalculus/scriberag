@@ -1,19 +1,19 @@
 import 'package:scriberag/data/models/journal_entry.dart';
 import 'package:scriberag/data/services/storage_service.dart';
 import 'package:scriberag/data/services/encryption_service.dart';
-import 'package:scriberag/data/services/gemini_service.dart';
+import 'package:scriberag/data/services/ai_service.dart';
 import 'package:uuid/uuid.dart';
 
 class JournalRepository {
   final StorageService _storageService;
   final EncryptionService _encryptionService;
-  final GeminiService _geminiService;
+  final AIService _aiService;
   final _uuid = const Uuid();
 
   JournalRepository(
     this._storageService,
     this._encryptionService,
-    this._geminiService,
+    this._aiService,
   );
 
   // Retrieve all entries
@@ -54,9 +54,9 @@ class JournalRepository {
 
     // 2. Generate embedding (if Gemini is configured)
     List<double>? embedding;
-    if (_geminiService.hasApiKey && transcription.trim().isNotEmpty) {
+    if (_aiService.hasEmbeddingCapability && transcription.trim().isNotEmpty) {
       try {
-        embedding = await _geminiService.getEmbedding(transcription);
+        embedding = await _aiService.getEmbedding(transcription);
       } catch (e) {
         print("Failed to generate embedding: $e. Entry will be saved without embedding.");
       }
@@ -91,15 +91,11 @@ class JournalRepository {
     return await _encryptionService.decryptFileToBytes(encryptedAudioPath);
   }
 
-  bool get hasGeminiApiKey => _geminiService.hasApiKey;
-
-  Future<String> transcribeAudio(String rawAudioPath) async {
-    return await _geminiService.transcribeAudio(rawAudioPath);
-  }
+  bool get hasEmbeddingCapability => _aiService.hasEmbeddingCapability;
 
   // Re-generate missing embeddings (e.g. when API key was missing or failed during save)
   Future<void> regenerateEmbeddings() async {
-    if (!_geminiService.hasApiKey) return;
+    if (!_aiService.hasEmbeddingCapability) return;
     
     final box = _storageService.journalBox;
     for (var key in box.keys) {
@@ -109,7 +105,7 @@ class JournalRepository {
           final entry = JournalEntry.fromMap(value);
           if (entry.embedding == null && entry.transcription.trim().isNotEmpty) {
             try {
-              final embedding = await _geminiService.getEmbedding(entry.transcription);
+              final embedding = await _aiService.getEmbedding(entry.transcription);
               final updatedEntry = entry.copyWith(embedding: embedding);
               await box.put(key, updatedEntry.toMap());
             } catch (e) {
