@@ -39,6 +39,9 @@ class JournalViewModel extends ChangeNotifier {
   Duration _playerPosition = Duration.zero;
   Duration _playerDuration = Duration.zero;
   
+  // Strong reference to prevent the in-memory audio source from being garbage collected
+  DecryptedAudioSource? _currentAudioSource;
+  
   // Subscriptions for player
   StreamSubscription? _positionSubscription;
   StreamSubscription? _durationSubscription;
@@ -285,14 +288,15 @@ class JournalViewModel extends ChangeNotifier {
       // Get decrypted bytes from repository
       final decryptedBytes = await _journalRepository.getDecryptedAudio(entry.id);
       
-      // Load decrypted bytes in-memory source
-      final audioSource = DecryptedAudioSource(decryptedBytes);
-      await _audioPlayer.setAudioSource(audioSource);
+      // Load decrypted bytes in-memory source and keep a strong reference to prevent GC
+      _currentAudioSource = DecryptedAudioSource(decryptedBytes);
+      await _audioPlayer.setAudioSource(_currentAudioSource!);
       
       await _audioPlayer.play();
     } catch (e) {
       print("Error starting audio playback: $e");
       _activeEntryId = null;
+      _currentAudioSource = null;
       notifyListeners();
     }
   }
@@ -307,6 +311,7 @@ class JournalViewModel extends ChangeNotifier {
     _activeEntryId = null;
     _playerPosition = Duration.zero;
     _playerDuration = Duration.zero;
+    _currentAudioSource = null;
     notifyListeners();
   }
 
@@ -340,6 +345,7 @@ class JournalViewModel extends ChangeNotifier {
     _playerStateSubscription?.cancel();
     _audioRecorder.dispose();
     _audioPlayer.dispose();
+    _currentAudioSource = null;
     super.dispose();
   }
 }
