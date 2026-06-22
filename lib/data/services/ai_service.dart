@@ -209,27 +209,68 @@ class AIService {
       return;
     }
 
-    // 1. Get embedding for the user query (Gemini)
-    final queryEmbedding = await getEmbedding(query);
+    List<JournalEntry> matchingEntriesList = [];
 
-    // 2. Rank entries by cosine similarity
-    final scoredEntries = entries.map((entry) {
-      double score = 0.0;
-      if (entry.embedding != null) {
-        score = calculateCosineSimilarity(queryEmbedding, entry.embedding!);
+    if (hasEmbeddingCapability) {
+      try {
+        // 1. Get embedding for the user query (Gemini)
+        final queryEmbedding = await getEmbedding(query);
+
+        // 2. Rank entries by cosine similarity
+        final scoredEntries = entries.map((entry) {
+          double score = 0.0;
+          if (entry.embedding != null) {
+            score = calculateCosineSimilarity(queryEmbedding, entry.embedding!);
+          }
+          return _ScoredEntry(entry, score);
+        }).toList();
+
+        // 3. Filter and sort
+        final matchingEntries = scoredEntries
+            .where((element) => element.score >= minSimilarity)
+            .toList();
+
+        matchingEntries.sort((a, b) => b.score.compareTo(a.score));
+        matchingEntriesList = matchingEntries.take(topK).map((e) => e.entry).toList();
+      } catch (e) {
+        print("Embedding generation failed, falling back to text-based search: $e");
       }
-      return _ScoredEntry(entry, score);
-    }).toList();
+    }
 
-    // 3. Filter and sort
-    final matchingEntries = scoredEntries
-        .where((element) => element.score >= minSimilarity)
-        .toList();
+    // Keyword search fallback if embeddings are not available or embedding request failed
+    if (matchingEntriesList.isEmpty) {
+      final queryLower = query.toLowerCase();
+      final queryWords = queryLower.split(RegExp(r'\s+')).where((w) => w.length > 2).toList();
+      final scoredEntries = <_ScoredEntry>[];
 
-    matchingEntries.sort((a, b) => b.score.compareTo(a.score));
-    final topEntries = matchingEntries.take(topK).toList();
+      for (var entry in entries) {
+        final textLower = entry.transcription.toLowerCase();
+        double score = 0.0;
 
-    if (topEntries.isEmpty) {
+        if (queryWords.isEmpty) {
+          if (textLower.contains(queryLower)) {
+            score = 1.0;
+          }
+        } else {
+          int matchCount = 0;
+          for (var word in queryWords) {
+            if (textLower.contains(word)) {
+              matchCount++;
+            }
+          }
+          score = matchCount / queryWords.length;
+        }
+
+        if (score > 0.0) {
+          scoredEntries.add(_ScoredEntry(entry, score));
+        }
+      }
+
+      scoredEntries.sort((a, b) => b.score.compareTo(a.score));
+      matchingEntriesList = scoredEntries.take(topK).map((e) => e.entry).toList();
+    }
+
+    if (matchingEntriesList.isEmpty) {
       yield "I searched your journal entries but couldn't find any relevant memories matching your query. Try asking about something else, or recording more entries!";
       return;
     }
@@ -240,11 +281,11 @@ class AIService {
       "Here are the most relevant journal entries matching the user's query:\n",
     );
 
-    for (var i = 0; i < topEntries.length; i++) {
-      final entry = topEntries[i].entry;
+    for (var i = 0; i < matchingEntriesList.length; i++) {
+      final entry = matchingEntriesList[i];
       final formattedDate = entry.timestamp.toLocal().toString().substring(0, 16);
       contextBuffer.writeln(
-        "Entry #${i + 1} - Date: $formattedDate (Similarity Score: ${(topEntries[i].score * 100).toStringAsFixed(1)}%)",
+        "Entry #${i + 1} - Date: $formattedDate",
       );
       contextBuffer.writeln("Transcription: \"${entry.transcription}\"");
       contextBuffer.writeln("-" * 40);
