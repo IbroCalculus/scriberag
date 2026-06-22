@@ -165,6 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: _selectedProvider,
                       decoration: const InputDecoration(
                         labelText: 'Select Provider',
@@ -173,19 +174,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       items: const [
                         DropdownMenuItem(
                           value: 'gemini',
-                          child: Text('Google Gemini (1.5 Flash)'),
+                          child: Text(
+                            'Google Gemini (1.5 Flash)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'openai',
-                          child: Text('OpenAI (GPT-4o)'),
+                          child: Text(
+                            'OpenAI (GPT-4o)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'anthropic',
-                          child: Text('Anthropic (Claude 3.5 Sonnet)'),
+                          child: Text(
+                            'Anthropic (Claude 3.5 Sonnet)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'lm_studio',
-                          child: Text('LM Studio (Offline Local LLM)'),
+                          child: Text(
+                            'LM Studio (Offline Local LLM)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                       onChanged: (val) {

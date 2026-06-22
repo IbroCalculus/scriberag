@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:hive_ce/hive.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:scriberag/core/constants.dart';

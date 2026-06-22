@@ -353,13 +353,20 @@ class DecryptedAudioSource extends StreamAudioSource {
 
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
-    start ??= 0;
-    end ??= bytes.length;
+    final int start0 = start ?? 0;
+    final int end0 = (end == null || end > bytes.length) ? bytes.length : end;
+    
+    // Ensure bounds are safe and valid
+    final int actualStart = start0.clamp(0, bytes.length);
+    final int actualEnd = end0.clamp(actualStart, bytes.length);
+    
+    final chunk = bytes.sublist(actualStart, actualEnd);
+
     return StreamAudioResponse(
       sourceLength: bytes.length,
-      contentLength: end - start,
-      offset: start,
-      stream: Stream.value(bytes.sublist(start, end)),
+      contentLength: chunk.length,
+      offset: actualStart,
+      stream: Stream.value(chunk),
       contentType: contentType,
     );
   }

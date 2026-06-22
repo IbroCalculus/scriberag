@@ -23,7 +23,7 @@ class InteractiveWaveform extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final active = activeColor ?? theme.colorScheme.primary;
-    final inactive = inactiveColor ?? theme.colorScheme.primary.withOpacity(0.2);
+    final inactive = inactiveColor ?? theme.colorScheme.primary.withValues(alpha: 0.2);
 
     return GestureDetector(
       onTapDown: (details) => _handleSeek(context, details.localPosition.dx),
